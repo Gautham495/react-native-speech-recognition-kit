@@ -6,7 +6,8 @@
 
 # react-native-speech-recognition-kit
 
-A **React Native TurboModule** that bridges Apple’s **Speech Recognition (SFSpeechRecognizer)** APIs for iOS and Google’s **SpeechRecognizer API** for Android.  
+A **React Native TurboModule** that bridges Apple’s **Speech Recognition (SFSpeechRecognizer)** APIs for iOS and Google’s **SpeechRecognizer API** for Android.
+
 This library lets your React Native app **request microphone & speech permission**, **start speech-to-text recognition**, and **retrieve transcribed text** in real time.
 
 > [!NOTE]
@@ -15,10 +16,7 @@ This library lets your React Native app **request microphone & speech permission
 > - Open-sourced so the React Native community can use **native-quality speech decoding** on both iOS & Android.
 > - Pull requests welcome — especially improvements to continuous dictation + multi-language support.
 > - Test in Real Android Device and not in Android Emulator
-
----
-
-This library is an updated fork of this library with fixes I made for ESM Modules: https://github.com/sufyan297/react-native-voice-to-text
+> - This library is an updated fork of this library with fixes I made for ESM Modules: https://github.com/sufyan297/react-native-voice-to-text
 
 ---
 
@@ -95,12 +93,6 @@ com.google.android.googlequicksearchbox
 ```
 
 must be installed.
-
----
-
-## 🧰 AppDelegate / MainActivity Setup
-
-No changes required.
 
 ---
 
@@ -211,12 +203,7 @@ const App = () => {
               style={styles.speechRecognitionContainer}
             >
               <View
-                style={{
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  flexDirection: 'row',
-                }}
-              >
+                style={styles.rowContainer}>
                 {recognizing ? (
                   <Image
                     source={require('../../icons/stop.png')}
@@ -277,6 +264,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginLeft: -65,
     marginBottom: Platform.OS === 'ios' ? 0 : 2,
+  },
+
+  rowContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
   },
 
   speechRecognitionIcon: {

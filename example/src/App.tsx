@@ -101,13 +101,7 @@ const App = () => {
               onPress={handleSpeechStart}
               style={styles.speechRecognitionContainer}
             >
-              <View
-                style={{
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  flexDirection: 'row',
-                }}
-              >
+              <View style={styles.rowContainer}>
                 {recognizing ? (
                   <Image
                     source={require('../../icons/stop.png')}
@@ -168,6 +162,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginLeft: -65,
     marginBottom: Platform.OS === 'ios' ? 0 : 2,
+  },
+
+  rowContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
   },
 
   speechRecognitionIcon: {
