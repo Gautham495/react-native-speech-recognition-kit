@@ -1,5 +1,5 @@
 {
-  "name": "react-native-speech-recognition",
+  "name": "react-native-speech-recognition-kit",
   "version": "0.1.0",
   "description": "Turbo Module to access Speech Recognition ",
   "main": "./lib/module/index.js",
@@ -32,7 +32,7 @@
     "!**/.*"
   ],
   "scripts": {
-    "example": "yarn workspace react-native-speech-recognition-example",
+    "example": "yarn workspace react-native-speech-recognition-kit-example",
     "test": "jest",
     "typecheck": "tsc",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
@@ -47,14 +47,14 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Gautham495/react-native-speech-recognition.git"
+    "url": "git+https://github.com/Gautham495/react-native-speech-recognition-kit.git"
   },
   "author": "Gautham495 <kinggautham495@gmail.com> (https://github.com/Gautham495)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Gautham495/react-native-speech-recognition/issues"
+    "url": "https://github.com/Gautham495/react-native-speech-recognition-kit/issues"
   },
-  "homepage": "https://github.com/Gautham495/react-native-speech-recognition#readme",
+  "homepage": "https://github.com/Gautham495/react-native-speech-recognition-kit#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },

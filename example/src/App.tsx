@@ -18,7 +18,7 @@ import {
   stopListening,
   destroy,
   speechRecogntionEvents,
-} from 'react-native-speech-recognition';
+} from 'react-native-speech-recognition-kit';
 
 const App = () => {
   const [text, setText] = useState<string>('');
