@@ -53,4 +53,4 @@ export const speechRecogntionEvents = {
   VOLUME_CHANGED: 'onSpeechVolumeChanged',
   AUDIO_BUFFER: 'onSpeechAudioBuffer',
   EVENT: 'onSpeechEvent',
-};
+} as const;

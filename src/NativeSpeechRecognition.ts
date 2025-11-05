@@ -12,7 +12,6 @@ export interface Spec extends TurboModule {
   setRecognitionLanguage(languageTag: string): Promise<boolean>;
   isRecognitionAvailable(): Promise<boolean>;
   getSupportedLanguages(): Promise<string[]>;
-  speechRecogntionEvents: string[];
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('SpeechRecognition');

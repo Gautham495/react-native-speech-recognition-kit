@@ -18,6 +18,10 @@ This library lets your React Native app **request microphone & speech permission
 
 ---
 
+This library is an updated fork of this library with fixes I made for ESM Modules: https://github.com/sufyan297/react-native-voice-to-text
+
+---
+
 ## 📦 Installation
 
 ```
@@ -32,7 +36,7 @@ Then install pods (iOS only):
 
 cd ios && pod install
 
-````
+```
 
 ---
 
@@ -54,7 +58,7 @@ cd ios && pod install
 <string>Speech recognition is used to convert your voice to text.</string>
 <key>NSMicrophoneUsageDescription</key>
 <string>Microphone access is required for speech input.</string>
-````
+```
 
 #### 2. Enable Speech Recognition Entitlement
 
@@ -288,10 +292,10 @@ const styles = StyleSheet.create({
 
 ## 🧩 Supported Platforms
 
-| Platform                     | Status            | Engine Used                       |
-| ---------------------------- | ----------------- | --------------------------------- |
-| **iOS (13+)**                | ✅ Fully supported | `SFSpeechRecognizer`              |
-| **Android (6+)**             | ✅ Fully supported | `android.speech.SpeechRecognizer` |
+| Platform         | Status             | Engine Used                       |
+| ---------------- | ------------------ | --------------------------------- |
+| **iOS (13+)**    | ✅ Fully supported | `SFSpeechRecognizer`              |
+| **Android (6+)** | ✅ Fully supported | `android.speech.SpeechRecognizer` |
 
 ---
 
