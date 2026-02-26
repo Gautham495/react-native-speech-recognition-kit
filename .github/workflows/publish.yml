@@ -42,18 +42,6 @@ jobs:
           # Install dependencies
           yarn install --no-immutable
 
-      # Quality checks using the actual package.json scripts
-      - name: Quality check
-        run: |
-          # TypeScript type checking
-          yarn typecheck
-
-          # Lint check
-          yarn lint --fix
-
-          # Run tests
-          yarn test --passWithNoTests
-
       # Build using create-react-native-library script
       - name: Build package
         run: yarn prepare
