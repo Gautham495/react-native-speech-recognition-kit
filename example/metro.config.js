@@ -11,6 +11,7 @@ const root = path.resolve(__dirname, '..');
  * @type {import('metro-config').MetroConfig}
  */
 module.exports = withMetroConfig(getDefaultConfig(__dirname), {
+  resetCache: true, // This was essential
   root,
   dirname: __dirname,
 });

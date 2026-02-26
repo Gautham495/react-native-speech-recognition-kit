@@ -6,34 +6,77 @@
 
 # react-native-speech-recognition-kit
 
-A **React Native TurboModule** that bridges Apple’s **Speech Recognition (SFSpeechRecognizer)** APIs for iOS and Google’s **SpeechRecognizer API** for Android.
+A **React Native TurboModule** for native speech recognition on iOS and Android. Uses Apple's **SFSpeechRecognizer** and Google's **SpeechRecognizer** — no cloud APIs, no third-party services, just pure on-device speech-to-text.
 
-This library lets your React Native app **request microphone & speech permission**, **start speech-to-text recognition**, and **retrieve transcribed text** in real time.
+---
+
+## ✨ Features
+
+- 🎤 **Real-time transcription** — Stream speech-to-text as the user speaks
+- 📊 **Voice level detection** — Get audio volume levels for visualizations
+- 🌍 **Multi-language support** — 50+ languages supported on both platforms
+- ⚡ **Partial results** — See text as it's being recognized
+- 🔒 **On-device processing** — No cloud APIs, works offline (iOS)
+- 📱 **TurboModule architecture** — Fast, synchronous native bridge
+- 🎯 **Works with Expo** — Compatible with Expo Dev Client (not Expo Go)
+
+---
+
+## 🎥 Demo
+
+<table>
+  <tr>
+    <th align="center">🍏 iOS</th>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="./docs/videos/iOS.gif" width="280" alt="iOS Demo" />
+    </td>
+  </tr>
+</table>
+
+---
 
 > [!NOTE]
 >
 > - Originally built for my production Voice AI app.
 > - Open-sourced so the React Native community can use **native-quality speech decoding** on both iOS & Android.
 > - Pull requests welcome — especially improvements to continuous dictation + multi-language support.
-> - Test in Real Android Device and not in Android Emulator
-> - This library is an updated fork of this library with fixes I made for ESM Modules: https://github.com/sufyan297/react-native-voice-to-text
+> - Test on a **real Android device**, not the Android Emulator (emulator lacks speech services).
+> - This library is an updated fork of [react-native-voice-to-text](https://github.com/sufyan297/react-native-voice-to-text) with ESM module fixes and additional features.
 
 ---
 
 ## 📦 Installation
 
-```
-
+```bash
 npm install react-native-speech-recognition-kit
-
+# or
+yarn add react-native-speech-recognition-kit
 ```
 
-Then install pods (iOS only):
+### iOS
 
-```
-
+```bash
 cd ios && pod install
+```
 
+### Expo
+
+This library uses **TurboModules** (not Expo Modules), so it works with:
+
+| Expo Setup          | Supported                    |
+| ------------------- | ---------------------------- |
+| **Expo Dev Client** | ✅ Yes                       |
+| **Expo Prebuild**   | ✅ Yes                       |
+| **Expo Go**         | ❌ No (requires native code) |
+
+```bash
+# For Expo projects, run prebuild first
+npx expo prebuild
+npx expo run:ios
+# or
+npx expo run:android
 ```
 
 ---
@@ -42,14 +85,15 @@ cd ios && pod install
 >
 > - Works on **iOS 13+** and **Android 6+**
 > - No third-party APIs required (uses **SFSpeechRecognizer** / **android.speech.SpeechRecognizer**)
+> - Android requires Google Speech Services (pre-installed on most devices)
 
 ---
 
-## ✅ Required Native Setup
+## ⚙️ Native Setup
 
 ### iOS Setup (Required)
 
-#### 1. Add permissions to **Info.plist**
+#### 1. Add permissions to `Info.plist`
 
 ```xml
 <key>NSSpeechRecognitionUsageDescription</key>
@@ -66,9 +110,9 @@ Xcode → Target → Signing & Capabilities → `+ Capability` → **Speech Reco
 
 ### Android Setup (Required)
 
-#### 1. Add permissions to **AndroidManifest.xml**
+#### 1. Add permissions to `AndroidManifest.xml`
 
-```
+```xml
 <uses-permission android:name="android.permission.RECORD_AUDIO" />
 ```
 
@@ -84,35 +128,81 @@ Inside `<manifest>` add:
 </queries>
 ```
 
-#### 3. (Optional) Ensure Google Speech Engine Available
+#### 3. (Optional) Ensure Google Speech Engine is Available
 
-Most devices ship with it. If using AOSP or emulator:
+Most devices ship with Google Speech Services. If using AOSP or emulator, ensure this package is installed:
 
 ```
 com.google.android.googlequicksearchbox
 ```
 
-must be installed.
+---
+
+## 📖 API Reference
+
+### Functions
+
+| Function                            | Description                                           |
+| ----------------------------------- | ----------------------------------------------------- |
+| `startListening()`                  | Start speech recognition                              |
+| `stopListening()`                   | Stop speech recognition                               |
+| `destroy()`                         | Clean up resources                                    |
+| `isRecognitionAvailable()`          | Check if speech recognition is available              |
+| `getRecognitionLanguage()`          | Get current recognition language                      |
+| `setRecognitionLanguage(lang)`      | Set recognition language (e.g., `'en-US'`, `'es-ES'`) |
+| `getSupportedLanguages()`           | Get list of supported language codes                  |
+| `addEventListener(event, callback)` | Subscribe to speech events                            |
+
+### Events
+
+```typescript
+import { speechRecogntionEvents } from 'react-native-speech-recognition-kit';
+
+// All available events
+speechRecogntionEvents.START; // Recognition started
+speechRecogntionEvents.BEGIN; // User started speaking
+speechRecogntionEvents.END; // Recognition ended
+speechRecogntionEvents.RESULTS; // Final transcription result
+speechRecogntionEvents.PARTIAL_RESULTS; // Live partial transcription
+speechRecogntionEvents.VOLUME_CHANGED; // Audio volume level changed
+speechRecogntionEvents.ERROR; // Error occurred
+```
+
+### Event Payloads
+
+```typescript
+// RESULTS & PARTIAL_RESULTS
+{
+  value: string;                    // Transcribed text
+  results?: {
+    transcriptions: Array<{
+      text: string;
+      confidence: number;           // 0.0 - 1.0
+    }>;
+  };
+}
+
+// VOLUME_CHANGED
+{
+  value: number;                    // dB level (typically -60 to 0)
+}
+
+// ERROR
+{
+  message: string;
+  code: number;
+}
+```
 
 ---
 
-## ⚙️ Usage
+## 🚀 Usage
+
+### Basic Example
 
 ```tsx
-import {
-  Platform,
-  StyleSheet,
-  ActivityIndicator,
-  Image,
-  Text,
-  View,
-  TextInput,
-  Dimensions,
-  TouchableOpacity,
-} from 'react-native';
-
 import { useEffect, useState } from 'react';
-
+import { View, Text, TouchableOpacity } from 'react-native';
 import {
   addEventListener,
   startListening,
@@ -122,200 +212,218 @@ import {
 } from 'react-native-speech-recognition-kit';
 
 const App = () => {
-  const [text, setText] = useState<string>('');
-
-  const [recognizing, setRecognizing] = useState<boolean>(false);
-
-  const [speechRecogntionLoader, setSpeechRecognitionLoader] =
-    useState<boolean>(false);
-
-  const onTextChange = (v: string) => {
-    setText(v);
-  };
+  const [text, setText] = useState('');
+  const [isListening, setIsListening] = useState(false);
 
   useEffect(() => {
     const resultsListener = addEventListener(
       speechRecogntionEvents.RESULTS,
-      (event) => {
-        setText(event.value);
-      }
+      (event) => setText(event.value)
     );
 
-    const speechPartialResultsSubscription = addEventListener(
+    const partialListener = addEventListener(
       speechRecogntionEvents.PARTIAL_RESULTS,
-      (event) => {
-        setText(event.value || '');
-      }
+      (event) => setText(event.value || '')
     );
 
     const startListener = addEventListener(speechRecogntionEvents.START, () =>
-      setRecognizing(true)
+      setIsListening(true)
     );
 
     const endListener = addEventListener(speechRecogntionEvents.END, () =>
-      setRecognizing(false)
+      setIsListening(false)
     );
 
     return () => {
       destroy();
-      startListener.remove();
       resultsListener.remove();
-      speechPartialResultsSubscription.remove();
+      partialListener.remove();
+      startListener.remove();
       endListener.remove();
     };
   }, []);
 
-  const handleSpeechStart = async () => {
-    try {
-      if (recognizing) {
-        await stopListening();
-      } else {
-        setSpeechRecognitionLoader(true);
-        await startListening();
-        setSpeechRecognitionLoader(false);
-      }
-    } catch (error) {
-      setSpeechRecognitionLoader(false);
+  const handlePress = async () => {
+    if (isListening) {
+      await stopListening();
+    } else {
+      await startListening();
     }
   };
 
   return (
-    <View style={styles.mainContainer}>
-      <View style={styles.inputContainer}>
-        <TextInput
-          multiline
-          value={text}
-          onChangeText={onTextChange}
-          style={styles.textInput}
-          placeholder={'Message...'}
-        />
-
-        <View>
-          {speechRecogntionLoader ? (
-            <ActivityIndicator
-              size={'small'}
-              color={'black'}
-              style={styles.speechRecognitionContainer}
-            />
-          ) : (
-            <TouchableOpacity
-              onPress={handleSpeechStart}
-              style={styles.speechRecognitionContainer}
-            >
-              <View
-                style={styles.rowContainer}>
-                {recognizing ? (
-                  <Image
-                    source={require('../../icons/stop.png')}
-                    style={styles.speechRecognitionIcon}
-                  />
-                ) : (
-                  <Image
-                    source={require('../../icons/wave-form.png')}
-                    style={styles.speechRecognitionIcon}
-                  />
-                )}
-                <Text>{recognizing ? 'Stop' : 'Speak'}</Text>
-              </View>
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
+    <View style={{ flex: 1, justifyContent: 'center', padding: 20 }}>
+      <Text style={{ fontSize: 18, marginBottom: 20 }}>
+        {text || 'Tap the button and speak...'}
+      </Text>
+      <TouchableOpacity
+        onPress={handlePress}
+        style={{
+          backgroundColor: isListening ? '#FF6B6B' : '#4ECDC4',
+          padding: 20,
+          borderRadius: 10,
+          alignItems: 'center',
+        }}
+      >
+        <Text style={{ color: 'white', fontSize: 16 }}>
+          {isListening ? '⏹️ Stop' : '🎤 Start'}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 };
 
 export default App;
+```
 
-const styles = StyleSheet.create({
-  mainContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: Dimensions.get('screen').height,
-    width: Dimensions.get('screen').width,
-  },
+### With Voice Level Visualization
 
-  inputContainer: {
-    justifyContent: 'center',
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-  },
+```tsx
+import { useEffect, useState } from 'react';
+import {
+  addEventListener,
+  startListening,
+  speechRecogntionEvents,
+} from 'react-native-speech-recognition-kit';
 
-  textInput: {
-    borderWidth: 0.5,
-    padding: 12,
-    width: Dimensions.get('screen').width * 0.92,
-    borderRadius: 30,
-    borderColor: 'black',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: 16,
-    maxHeight: 120,
-    backgroundColor: 'white',
-    color: 'black',
-    paddingRight: 65,
-  },
+const App = () => {
+  const [voiceLevel, setVoiceLevel] = useState(-60);
 
-  speechRecognitionContainer: {
-    width: 45,
-    height: 45,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: -65,
-    marginBottom: Platform.OS === 'ios' ? 0 : 2,
-  },
+  useEffect(() => {
+    const volumeListener = addEventListener(
+      speechRecogntionEvents.VOLUME_CHANGED,
+      (event) => {
+        // event.value is in dB, typically -60 (silent) to -20 (loud)
+        setVoiceLevel(event.value);
+      }
+    );
 
-  rowContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'row',
-  },
+    return () => volumeListener.remove();
+  }, []);
 
-  speechRecognitionIcon: {
-    width: 18,
-    height: 18,
-    marginTop: Platform.OS === 'android' ? 0 : 0,
-    marginRight: 5,
-  },
-});
+  // Use voiceLevel to drive audio visualizations
+  const normalizedLevel = Math.max(0, (voiceLevel + 60) / 40); // 0 to 1
+
+  return (
+    <View
+      style={{ height: 50 * normalizedLevel, backgroundColor: '#4ECDC4' }}
+    />
+  );
+};
+```
+
+### Multi-Language Support
+
+```tsx
+import {
+  setRecognitionLanguage,
+  getRecognitionLanguage,
+  getSupportedLanguages,
+} from 'react-native-speech-recognition-kit';
+
+// Get current language
+const currentLang = await getRecognitionLanguage();
+console.log(currentLang); // 'en-US'
+
+// Get all supported languages
+const languages = await getSupportedLanguages();
+console.log(languages); // ['en-US', 'es-ES', 'fr-FR', 'de-DE', ...]
+
+// Change language
+await setRecognitionLanguage('es-ES'); // Spanish
+await setRecognitionLanguage('ja-JP'); // Japanese
+await setRecognitionLanguage('hi-IN'); // Hindi
 ```
 
 ---
 
-## 🧩 Supported Platforms
+## 🧩 Platform Support
 
-| Platform         | Status             | Engine Used                       |
-| ---------------- | ------------------ | --------------------------------- |
-| **iOS (13+)**    | ✅ Fully supported | `SFSpeechRecognizer`              |
-| **Android (6+)** | ✅ Fully supported | `android.speech.SpeechRecognizer` |
+| Platform       | Status             | Engine                            | Offline Support |
+| -------------- | ------------------ | --------------------------------- | --------------- |
+| **iOS 13+**    | ✅ Fully supported | `SFSpeechRecognizer`              | ✅ Yes          |
+| **Android 6+** | ✅ Fully supported | `android.speech.SpeechRecognizer` | ⚠️ Limited      |
 
 ---
 
 ## 🛠️ Under the Hood
 
 ```
-iOS:
-- SFSpeechRecognizer
-- SFSpeechAudioBufferRecognitionRequest
-- AVAudioEngine
-
-Android:
-- SpeechRecognizer
-- RecognitionListener
-- AudioRecord Pipeline
+┌─────────────────────────────────────────────────────────────┐
+│                     JavaScript Layer                        │
+│                                                             │
+│  startListening() ──► TurboModule Bridge ──► Native Module  │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+                              │
+              ┌───────────────┴───────────────┐
+              ▼                               ▼
+┌─────────────────────────┐     ┌─────────────────────────┐
+│          iOS            │     │        Android          │
+│                         │     │                         │
+│  • SFSpeechRecognizer   │     │  • SpeechRecognizer     │
+│  • AVAudioEngine        │     │  • RecognitionListener  │
+│  • Audio Buffer Stream  │     │  • AudioRecord Pipeline │
+│                         │     │                         │
+└─────────────────────────┘     └─────────────────────────┘
 ```
 
-Text is streamed to JS via **TurboModule Event Emitters**.
+Events are streamed to JavaScript via **TurboModule Event Emitters** for real-time updates.
+
+---
+
+## 🔧 Troubleshooting
+
+### iOS
+
+| Issue                          | Solution                                                |
+| ------------------------------ | ------------------------------------------------------- |
+| "Speech permission denied"     | Add `NSSpeechRecognitionUsageDescription` to Info.plist |
+| "Microphone permission denied" | Add `NSMicrophoneUsageDescription` to Info.plist        |
+| "Recognizer not available"     | Check device supports speech recognition                |
+
+### Android
+
+| Issue                              | Solution                                               |
+| ---------------------------------- | ------------------------------------------------------ |
+| "Speech recognition not available" | Install Google app or use a real device                |
+| No results on emulator             | Use a physical device (emulator lacks speech services) |
+| "Insufficient permissions"         | Request `RECORD_AUDIO` permission at runtime           |
 
 ---
 
 ## 🤝 Contributing
 
-Pull requests welcome!
+Contributions are welcome! Areas that could use help:
+
+- [ ] Continuous dictation mode
+- [ ] Custom vocabulary / hotwords
+- [ ] Audio file transcription
+- [ ] Improved error handling
+- [ ] Unit tests
+
+```bash
+# Clone the repo
+git clone https://github.com/user/react-native-speech-recognition-kit.git
+
+# Install dependencies
+yarn install
+
+# Run example app
+cd example
+yarn ios
+# or
+yarn android
+```
 
 ---
 
 ## 🪪 License
 
 MIT © [Gautham Vijayan](https://gauthamvijay.com)
+
+---
+
+<p align="center">
+  <sub>Built with ❤️ for the React Native community</sub>
+</p>
