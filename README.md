@@ -392,16 +392,6 @@ Events are streamed to JavaScript via **TurboModule Event Emitters** for real-ti
 
 ---
 
-## 🤝 Contributing
-
-Contributions are welcome! Areas that could use help:
-
-- [ ] Continuous dictation mode
-- [ ] Custom vocabulary / hotwords
-- [ ] Audio file transcription
-- [ ] Improved error handling
-- [ ] Unit tests
-
 ```bash
 # Clone the repo
 git clone https://github.com/user/react-native-speech-recognition-kit.git
