@@ -131,6 +131,38 @@ RCT_EXPORT_MODULE(SpeechRecognition)
   [self stopRecognitionSession];
 }
 
+// Calculate RMS (Root Mean Square) for volume level
+- (float)calculateRMSFromBuffer:(AVAudioPCMBuffer *)buffer {
+    if (buffer.floatChannelData == nil) return 0.0;
+    
+    float *samples = buffer.floatChannelData[0];
+    AVAudioFrameCount frameLength = buffer.frameLength;
+    
+    if (frameLength == 0) return 0.0;
+    
+    float sumSquares = 0.0;
+    for (AVAudioFrameCount i = 0; i < frameLength; i++) {
+        sumSquares += samples[i] * samples[i];
+    }
+    
+    float rms = sqrtf(sumSquares / frameLength);
+    // Convert to dB-like scale (similar to Android's rmsdB)
+    float dB = 20.0 * log10f(rms + 0.0001); // Add small value to avoid log(0)
+    
+    return dB;
+}
+
+// Convert audio buffer to base64 string
+- (NSString *)bufferToBase64:(AVAudioPCMBuffer *)buffer {
+    if (buffer.floatChannelData == nil) return @"";
+    
+    float *samples = buffer.floatChannelData[0];
+    AVAudioFrameCount frameLength = buffer.frameLength;
+    
+    NSData *data = [NSData dataWithBytes:samples length:frameLength * sizeof(float)];
+    return [data base64EncodedStringWithOptions:0];
+}
+
 RCT_EXPORT_METHOD(startListening:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
@@ -313,16 +345,23 @@ RCT_EXPORT_METHOD(destroy)
 
 RCT_EXPORT_METHOD(stopListening)
 {
-  [self stopRecognitionSession];
+    [self stopRecognitionSession];
+}
+
+// Send generic event (for custom events from native side)
+- (void)sendSpeechEvent:(NSString *)eventType withParams:(NSDictionary *)params {
+    NSMutableDictionary *eventData = [NSMutableDictionary dictionaryWithDictionary:params ?: @{}];
+    eventData[@"eventType"] = eventType;
+    [self sendEventWithName:@"onSpeechEvent" body:eventData];
 }
 
 RCT_EXPORT_METHOD(fireTestEvent) {
-  NSLog(@"🔥 fireTestEvent called");
-  if (hasListeners) {
-    [self sendEventWithName:@"onTestEvent" body:@{@"message": @"Hello from native!"}];
-  } else {
-    NSLog(@"❌ No listeners active. Skipping event.");
-  }
+    NSLog(@"🔥 fireTestEvent called");
+    if (hasListeners) {
+        [self sendEventWithName:@"onTestEvent" body:@{@"message": @"Hello from native!"}];
+    } else {
+        NSLog(@"❌ No listeners active. Skipping event.");
+    }
 }
 
 RCT_EXPORT_METHOD(setRecognitionLanguage:(NSString *)languageTag
