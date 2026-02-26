@@ -175,10 +175,7 @@ RCT_EXPORT_METHOD(getRecognitionLanguage:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     NSString *languageCode = _selectedLocale.localeIdentifier;
-    
-    // Convert underscore to hyphen (en_US -> en-US) for consistency with Android
     languageCode = [languageCode stringByReplacingOccurrencesOfString:@"_" withString:@"-"];
-    
     resolve(languageCode);
 }
 
@@ -186,12 +183,9 @@ RCT_EXPORT_METHOD(setRecognitionLanguage:(NSString *)languageTag
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    // Convert hyphen to underscore (en-US -> en_US) for NSLocale
     NSString *localeIdentifier = [languageTag stringByReplacingOccurrencesOfString:@"-" withString:@"_"];
-    
     NSLocale *newLocale = [NSLocale localeWithLocaleIdentifier:localeIdentifier];
     
-    // Verify the locale is valid for speech recognition
     SFSpeechRecognizer *testRecognizer = [[SFSpeechRecognizer alloc] initWithLocale:newLocale];
     
     if (testRecognizer && testRecognizer.isAvailable) {
@@ -199,7 +193,6 @@ RCT_EXPORT_METHOD(setRecognitionLanguage:(NSString *)languageTag
         NSLog(@"✅ Language set to: %@", languageTag);
         resolve(@(YES));
     } else {
-        // Fallback to system locale
         NSLog(@"⚠️ Language %@ not available, falling back to system locale", languageTag);
         _selectedLocale = [NSLocale currentLocale];
         reject(@"LANGUAGE_NOT_AVAILABLE", 
@@ -216,14 +209,11 @@ RCT_EXPORT_METHOD(getSupportedLanguages:(RCTPromiseResolveBlock)resolve
     
     for (NSLocale *locale in supportedLocales) {
         NSString *identifier = locale.localeIdentifier;
-        // Convert underscore to hyphen for consistency with Android
         identifier = [identifier stringByReplacingOccurrencesOfString:@"_" withString:@"-"];
         [languages addObject:identifier];
     }
     
-    // Sort alphabetically
     [languages sortUsingSelector:@selector(compare:)];
-    
     resolve(languages);
 }
 
@@ -261,33 +251,33 @@ RCT_EXPORT_METHOD(startListening:(RCTPromiseResolveBlock)resolve
 
             [self setupAudioSession];
 
-            // Use selected locale (falls back to system locale if not set)
-            _speechRecognizer = [[SFSpeechRecognizer alloc] initWithLocale:_selectedLocale];
+            self->_speechRecognizer = [[SFSpeechRecognizer alloc] initWithLocale:self->_selectedLocale];
             
-            if (!_speechRecognizer) {
-                // Fallback to system locale if selected locale fails
+            if (!self->_speechRecognizer) {
                 NSLog(@"⚠️ Selected locale failed, falling back to system locale");
-                _selectedLocale = [NSLocale currentLocale];
-                _speechRecognizer = [[SFSpeechRecognizer alloc] initWithLocale:_selectedLocale];
+                self->_selectedLocale = [NSLocale currentLocale];
+                self->_speechRecognizer = [[SFSpeechRecognizer alloc] initWithLocale:self->_selectedLocale];
             }
             
-            if (!_speechRecognizer || !_speechRecognizer.isAvailable) {
+            if (!self->_speechRecognizer || !self->_speechRecognizer.isAvailable) {
                 [self sendEventWithName:@"onSpeechError" body:@{@"message": @"Recognizer not available", @"code": @(-20)}];
                 reject(@"NOT_AVAILABLE", @"Recognizer not available", nil);
                 return;
             }
 
-            _recognitionRequest = [[SFSpeechAudioBufferRecognitionRequest alloc] init];
-            _recognitionRequest.shouldReportPartialResults = YES;
+            self->_recognitionRequest = [[SFSpeechAudioBufferRecognitionRequest alloc] init];
+            self->_recognitionRequest.shouldReportPartialResults = YES;
 
-            _audioEngine = [[AVAudioEngine alloc] init];
-            _inputNode = _audioEngine.inputNode;
+            self->_audioEngine = [[AVAudioEngine alloc] init];
+            self->_inputNode = self->_audioEngine.inputNode;
 
-            AVAudioFormat *format = [_inputNode outputFormatForBus:0];
+            AVAudioFormat *format = [self->_inputNode outputFormatForBus:0];
             
-            __weak typeof(self) weakSelf = self;
-            [_inputNode installTapOnBus:0 bufferSize:1024 format:format block:^(AVAudioPCMBuffer *buffer, AVAudioTime *when) {
-                __strong typeof(weakSelf) strongSelf = weakSelf;
+            // Capture self weakly to avoid retain cycles
+            __weak SpeechRecognition *weakSelf = self;
+            
+            [self->_inputNode installTapOnBus:0 bufferSize:1024 format:format block:^(AVAudioPCMBuffer *buffer, AVAudioTime *when) {
+                SpeechRecognition *strongSelf = weakSelf;
                 if (!strongSelf || strongSelf->_isStopped) return;
                 
                 [strongSelf->_recognitionRequest appendAudioPCMBuffer:buffer];
@@ -295,15 +285,11 @@ RCT_EXPORT_METHOD(startListening:(RCTPromiseResolveBlock)resolve
                 // Send volume level
                 float rmsDb = [strongSelf calculateRMSFromBuffer:buffer];
                 [strongSelf sendEventWithName:@"onSpeechVolumeChanged" body:@{@"value": @(rmsDb)}];
-                
-                // Uncomment to send audio buffer (heavy):
-                // NSString *base64Buffer = [strongSelf bufferToBase64:buffer];
-                // [strongSelf sendEventWithName:@"onSpeechAudioBuffer" body:@{@"buffer": base64Buffer}];
             }];
 
             NSError *startError = nil;
-            [_audioEngine prepare];
-            [_audioEngine startAndReturnError:&startError];
+            [self->_audioEngine prepare];
+            [self->_audioEngine startAndReturnError:&startError];
             if (startError) {
                 [self sendEventWithName:@"onSpeechError" body:@{@"message": startError.localizedDescription, @"code": @(-30)}];
                 reject(@"ENGINE_ERROR", startError.localizedDescription, startError);
@@ -312,9 +298,9 @@ RCT_EXPORT_METHOD(startListening:(RCTPromiseResolveBlock)resolve
 
             [self sendEventWithName:@"onSpeechStart" body:@{@"message": @"Ready for speech"}];
 
-            _recognitionTask = [_speechRecognizer recognitionTaskWithRequest:_recognitionRequest
+            self->_recognitionTask = [self->_speechRecognizer recognitionTaskWithRequest:self->_recognitionRequest
                                                             resultHandler:^(SFSpeechRecognitionResult *result, NSError *error) {
-                __strong typeof(weakSelf) strongSelf = weakSelf;
+                SpeechRecognition *strongSelf = weakSelf;
                 if (!strongSelf) return;
                 
                 if (result) {
@@ -335,7 +321,6 @@ RCT_EXPORT_METHOD(startListening:(RCTPromiseResolveBlock)resolve
                     if (result.isFinal) {
                         NSLog(@"✅ Final Result: %@", transcript);
                         
-                        // Build results in same format as Android
                         float confidence = 0.0;
                         if (result.bestTranscription.segments.count > 0) {
                             confidence = result.bestTranscription.segments[0].confidence;
