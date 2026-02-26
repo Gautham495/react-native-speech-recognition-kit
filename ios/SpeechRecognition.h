@@ -10,5 +10,6 @@
 @property (nonatomic, strong) SFSpeechRecognitionTask *recognitionTask;
 @property (nonatomic, strong) AVAudioEngine *audioEngine;
 @property (nonatomic) BOOL isListening;
+@property (nonatomic, copy) NSString *recognitionLanguage;
 
 @end
