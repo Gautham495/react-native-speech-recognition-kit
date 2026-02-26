@@ -1,6 +1,6 @@
 {
   "name": "react-native-speech-recognition-kit",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "React Native Turbo Module to access Speech Recognition in Android & iOS",
   "main": "./lib/module/index.js",
   "types": "./lib/typescript/src/index.d.ts",
